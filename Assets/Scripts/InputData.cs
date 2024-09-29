@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
-
+// Test comment 
 public class InputData : MonoBehaviour
 {
     public InputDevice _rightController;
