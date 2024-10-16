@@ -40,5 +40,4 @@ public class InputData : MonoBehaviour
             inputDevice = devices[0];
         }
     }
-
 }
