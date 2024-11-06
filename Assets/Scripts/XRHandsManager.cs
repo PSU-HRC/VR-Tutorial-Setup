@@ -133,11 +133,11 @@ public class XRHandsManager : MonoBehaviour
     private bool isProximal(XRHandJointID jointID) {
 
         HashSet<XRHandJointID> proximalIndices = new HashSet<XRHandJointID> {
-            XRHandJointID.ThumbProximal,
-            XRHandJointID.IndexProximal,
-            XRHandJointID.MiddleProximal,
-            XRHandJointID.RingProximal,
-            XRHandJointID.LittleProximal
+            XRHandJointID.ThumbTip,
+            XRHandJointID.IndexTip,
+            XRHandJointID.MiddleTip,
+            XRHandJointID.RingTip,
+            XRHandJointID.LittleTip 
         };
 
         return proximalIndices.Contains(jointID);

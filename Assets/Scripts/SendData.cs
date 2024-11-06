@@ -55,9 +55,9 @@ public class SendData : MonoBehaviour
             //formattedData += $"Rot: {rot.x:F2}, {rot.y:F2}, {rot.z:F2}, {rot.w:F2} | ";
 
             float fingerBend = angles.x;
-            if (fingerBend > 180) {
-                fingerBend = 180;
-            }
+            /*if (fingerBend > 180) {
+                fingerBend = 0;
+            }*/
             formattedData = $"{(Mathf.RoundToInt(fingerBend))}";
             Debug.Log($"Finger: {Mathf.RoundToInt(fingerBend)}");
 
