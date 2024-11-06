@@ -12,6 +12,9 @@ public class XRHandsManager : MonoBehaviour
     XRHandSubsystem handSubsystem;
     [SerializeField]
     private SendData sendDataScript;
+
+    private float timer = 0f;
+    private float timerInterval = 0.1f;
     void Start()
     {
         // Get the active XR loader and hand subsystem. 
@@ -41,35 +44,43 @@ public class XRHandsManager : MonoBehaviour
         }
     }
 
-    void Update()
+    void FixedUpdate()
     {
-        if (handSubsystem != null)
-        {
-            // Gets data for left and right hands
-            XRHand leftHand = handSubsystem.leftHand;
-            XRHand rightHand = handSubsystem.rightHand;
+        timer += Time.fixedDeltaTime;
 
-            // Left hand is being tracked
-            if (leftHand.isTracked)
-            {
-                //Debug.Log("Left hand is being tracked");
-                HandData leftData = ProcessHandData(leftHand);
-                sendDataScript.SendToArduino(leftData);
+        if (timer >= timerInterval) {
+            if (handSubsystem != null) {
+                // Gets data for left and right hands
+                XRHand leftHand = handSubsystem.leftHand;
+                XRHand rightHand = handSubsystem.rightHand;
+
+                // Left hand is being tracked
+                if (leftHand.isTracked)
+                {
+                    //Debug.Log("Left hand is being tracked");
+                    XRHandJoint leftWristJoint = leftHand.GetJoint(XRHandJointID.Wrist);
+                    HandData leftData = ProcessHandData(leftHand, leftWristJoint);
+                    //sendDataScript.SendToArduino(leftData);
+                }
+
+                // Right hand is being tracked
+                if (rightHand.isTracked)
+                {
+                    //Debug.Log("Right hand is being tracked");
+                    XRHandJoint rightWristJoint = rightHand.GetJoint(XRHandJointID.Wrist);
+                    HandData rightData = ProcessHandData(rightHand, rightWristJoint);
+                    sendDataScript.SendToArduino(rightData);
+                }
+                timer = 0f;
             }
 
-            // Right hand is being tracked
-            if (rightHand.isTracked)
-            {
-                //Debug.Log("Right hand is being tracked");
-                HandData rightData = ProcessHandData(rightHand);
-                sendDataScript.SendToArduino(rightData);
-            }
         }
+        
     }
 
     // Function to process hand data (joint positions and rotations)
     // https://docs.unity3d.com/Packages/com.unity.xr.hands@1.3/api/UnityEngine.XR.Hands.XRHandJointID.html
-    private HandData ProcessHandData(XRHand hand)
+    private HandData ProcessHandData(XRHand hand, XRHandJoint wristJoint)
     {
         HandData handData = new HandData
         {
@@ -77,6 +88,14 @@ public class XRHandsManager : MonoBehaviour
             positions = new Vector3[5],
             rotations = new Quaternion[5]
         };
+
+        Quaternion wristRot = Quaternion.identity;
+        if (wristJoint.TryGetPose(out Pose wristPose)) {
+            wristRot = wristPose.rotation;
+        }
+        else {
+            Debug.Log("no pose for wrist");
+        }
 
         int index = 0;
         // Loop through all joint IDs by casting an enum value to indices(int), so that we can iterate
@@ -93,9 +112,12 @@ public class XRHandsManager : MonoBehaviour
                 // Pose is position & rotation. This is attempting to get the post of the specified joint gameobject.
                 if (joint.TryGetPose(out Pose pose))
                 {
-                    //Debug.Log($"{hand.handedness} Hand - {jointID}: Position: {pose.position}, Rotation: {pose.rotation}");
+                    // This is the finger rotation in relation to the wrist, instead of the global space
+                    Quaternion rot = Quaternion.Inverse(wristRot) * pose.rotation;
+
+                    Debug.Log($"{hand.handedness} Hand - {jointID}: Position: {pose.position}, Rotation: {pose.rotation}");
                     handData.positions[index] = pose.position;
-                    handData.rotations[index] = pose.rotation;
+                    handData.rotations[index] = rot;
                     index ++;
                 }
                 else
@@ -111,11 +133,11 @@ public class XRHandsManager : MonoBehaviour
     private bool isProximal(XRHandJointID jointID) {
 
         HashSet<XRHandJointID> proximalIndices = new HashSet<XRHandJointID> {
-            XRHandJointID.ThumbDistal,
-            XRHandJointID.IndexDistal,
-            XRHandJointID.MiddleDistal,
-            XRHandJointID.RingDistal,
-            XRHandJointID.LittleDistal
+            XRHandJointID.ThumbProximal,
+            XRHandJointID.IndexProximal,
+            XRHandJointID.MiddleProximal,
+            XRHandJointID.RingProximal,
+            XRHandJointID.LittleProximal
         };
 
         return proximalIndices.Contains(jointID);
