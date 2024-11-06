@@ -32,7 +32,7 @@ public class SendData : MonoBehaviour
 
         if (data != null && data != "" && port.IsOpen)
         {
-            port.WriteLine(data + "\n");
+            port.WriteLine(data);
             //Debug.Log("Sent to Arduino: " + data);
         }
         
@@ -58,8 +58,8 @@ public class SendData : MonoBehaviour
             if (fingerBend > 180) {
                 fingerBend = 180;
             }
-            formattedData = $"{(fingerBend):F2}";
-            Debug.Log($"Finger: {fingerBend:F2}");
+            formattedData = $"{(Mathf.RoundToInt(fingerBend))}";
+            Debug.Log($"Finger: {Mathf.RoundToInt(fingerBend)}");
 
             //formattedData = $"{(1*rot.x):F2}\n";
             //Debug.Log($"Finger: {(1*rot.x):F2}");
